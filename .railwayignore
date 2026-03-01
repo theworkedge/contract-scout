@@ -1,0 +1,31 @@
+# Local data and logs
+opportunities_log.csv
+contract_scout.log
+*.log
+
+# Secrets — never deploy
+.env
+
+# Test files
+test_email.py
+test_*.py
+
+# macOS LaunchAgent (local only)
+*.plist
+run_daily.sh
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# IDE / workspace files
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+
+# Deployment docs (not needed at runtime)
+DEPLOYMENT_GUIDE.md

@@ -1,0 +1,14 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "echo 'Railway cron worker ready'"
+restartPolicyType = "never"
+
+[[services]]
+name = "contract-scout-cron"
+
+[services.deploy]
+cronSchedule = "0 13 * * *"
+startCommand = "python3 contract_scout.py"
+restartPolicyType = "never"
