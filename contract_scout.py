@@ -358,7 +358,7 @@ def send_email(scored: list[dict], opportunities: list[dict], env: dict[str, str
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = env["GMAIL_ADDRESS"]
+    msg["From"] = env["EMAIL_ADDRESS"]
     msg["To"] = env["RECIPIENT_EMAIL"]
     msg.attach(MIMEText(html, "html"))
 
@@ -367,8 +367,8 @@ def send_email(scored: list[dict], opportunities: list[dict], env: dict[str, str
     try:
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
             server.starttls()
-            server.login(env["GMAIL_ADDRESS"], env["GMAIL_APP_PASSWORD"])
-            server.sendmail(env["GMAIL_ADDRESS"], env["RECIPIENT_EMAIL"], msg.as_string())
+            server.login(env["EMAIL_ADDRESS"], env["EMAIL_APP_PASSWORD"])
+            server.sendmail(env["EMAIL_ADDRESS"], env["RECIPIENT_EMAIL"], msg.as_string())
         log.info("Email sent successfully.")
     except smtplib.SMTPException as exc:
         log.error("Failed to send email: %s", exc)
