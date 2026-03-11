@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
+from urllib.parse import quote
 
 import anthropic
 import requests
@@ -101,20 +102,33 @@ def validate_env() -> dict[str, str]:
 # ---------------------------------------------------------------------------
 
 
+def build_sam_url(api_key: str, posted_from: str, posted_to: str) -> str:
+    """Build the SAM.gov search URL preserving =, / and , in parameter values.
+
+    The SAM.gov API rejects requests when those characters are percent-encoded,
+    so we cannot rely on requests' default param encoding.
+    """
+    # Characters that SAM.gov requires to remain unencoded in values.
+    _SAFE = "=,/"
+    params = [
+        ("api_key", api_key),
+        ("postedFrom", posted_from),
+        ("postedTo", posted_to),
+        ("ncode", NAICS_CODES),
+        ("ptype", POST_TYPES),
+        ("limit", str(RESULT_LIMIT)),
+    ]
+    query = "&".join(f"{k}={quote(str(v), safe=_SAFE)}" for k, v in params)
+    return f"{SAM_SEARCH_URL}?{query}"
+
+
 def search_sam_gov(api_key: str) -> list[dict]:
     """Query the SAM.gov opportunities API for recent solicitations."""
     today = datetime.now()
     posted_from = (today - timedelta(days=SEARCH_DAYS)).strftime("%m/%d/%Y")
     posted_to = today.strftime("%m/%d/%Y")
 
-    params = {
-        "api_key": api_key,
-        "postedFrom": posted_from,
-        "postedTo": posted_to,
-        "ncode": NAICS_CODES,
-        "ptype": POST_TYPES,
-        "limit": RESULT_LIMIT,
-    }
+    url = build_sam_url(api_key, posted_from, posted_to)
 
     log.info(
         "Searching SAM.gov  |  NAICS: %s  |  Date range: %s – %s",
@@ -124,7 +138,7 @@ def search_sam_gov(api_key: str) -> list[dict]:
     )
 
     try:
-        resp = requests.get(SAM_SEARCH_URL, params=params, timeout=30)
+        resp = requests.get(url, timeout=30)
         resp.raise_for_status()
     except requests.RequestException as exc:
         log.error("SAM.gov API request failed: %s", exc)
